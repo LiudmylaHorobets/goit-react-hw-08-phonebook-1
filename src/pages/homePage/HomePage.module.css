@@ -1,0 +1,18 @@
+.container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.title {
+    color: #ff6b0a;
+    padding-top: 30px;
+}
+ 
+.homeLink{
+    color: #ff6b0a;
+  }
+  
+  .homeLink:hover{
+    color: #00f;
+  }

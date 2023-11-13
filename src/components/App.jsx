@@ -1,95 +1,73 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchContacts, filterContacts } from 'redux/contactSlice';
-import { selectFilter, selectItems } from 'redux/selectors';
-import { ContactForm } from './ContactForm/ContactForm.jsx';
-import { ContactsList } from './ContactsList/ContactsList.jsx';
-import { Filter } from './Filter/Filter.jsx';
+import { Suspense, lazy, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Route, Routes } from 'react-router-dom';
+import RestictedRoute from './RestictedRoute';
+import { selectAuthIsloading } from 'redux/authSelector';
+import { refreshUserThunk } from 'redux/authSlice';
+import PrivateRoute from './PrivateRoute';
+import Loader from './Loader';
+import { StyledAppContainer } from './App.styled';
+import Layout from './Layout/Layout';
 
-import css from './App.module.css';
+const HomePage = lazy(() => import('pages/homePage/HomePage'));
+const ContactsPage = lazy(() => import('pages/ContactsPage'));
+const LoginPage = lazy(() => import('pages/LoginPage'));
+const RegisterPage = lazy(() => import('pages/RegisterPage'));
 
-// export const App = () => {
-//   const dispatch = useDispatch();
-//   useEffect(() => {
-//     dispatch(fetchContacts());
-//   }, [dispatch]);
-
-//   const contacts = useSelector(selectItems);
-//   const filter = useSelector(selectFilter);
-
-//   const handleFilterChange = e => {
-//     const newFilter = e.target.value;
-//     dispatch(filterContacts(newFilter));
-//   };
-
-//   const getContactFromFilter = () => {
-//     if (typeof filter !== 'string') {
-//       return contacts;
-//     }
-//     const filteredContacts = contacts.filter(({ name }) =>
-//       name.toLowerCase().includes(filter.toLowerCase())
-//     );
-//     return filteredContacts;
-//   };
-
-//   return (
-//     <div className={css.phonebook}>
-//       <h1 className={css.title}>Phonebook</h1>
-//       <ContactForm />
-//       <h2 className={css.title}>Contacts</h2>
-//       {contacts.length > 0 ? (
-//         <>
-//           <Filter filter={filter} handleFilterChange={handleFilterChange} />
-//           <ContactsList contacts={getContactFromFilter()} />
-//         </>
-//       ) : (
-//         <p className={css.titleNotification}>
-//           Your phonebook is empty. Add your first contact!
-//         </p>
-//       )}
-//     </div>
-//   );
-// };
-
-export const App = () => {
+const appRoutes = [
+  { path: '/', element: <HomePage /> },
+  {
+    path: '/register',
+    element: (
+      <RestictedRoute>
+        <RegisterPage />
+      </RestictedRoute>
+    ),
+  },
+  {
+    path: '/login',
+    element: (
+      <RestictedRoute>
+        <LoginPage />
+      </RestictedRoute>
+    ),
+  },
+  {
+    path: '/contacts',
+    element: (
+      <PrivateRoute>
+        <ContactsPage />
+      </PrivateRoute>
+    ),
+  },
+];
+const App = () => {
   const dispatch = useDispatch();
+  const isRefreshing = useSelector(selectAuthIsloading);
+
   useEffect(() => {
-    dispatch(fetchContacts());
+    dispatch(refreshUserThunk());
   }, [dispatch]);
-
-  const contacts = useSelector(selectItems);
-  const filter = useSelector(selectFilter);
-
-  const handleFilterChange = e => {
-    const newFilter = e.target.value;
-    dispatch(filterContacts(newFilter));
-  };
-
-  const getContactFromFilter = () => {
-    if (typeof filter !== 'string') {
-      return contacts;
-    }
-    const filteredContacts = contacts.filter(({ name }) =>
-      name.toLowerCase().includes(filter.toLowerCase())
-    );
-    return filteredContacts;
-  };
-
   return (
-    <div className={css.phonebook}>
-      <h1 className={css.title}>Phonebook</h1>
-      <ContactForm />
-      <h2 className={css.title}>Contacts</h2>
-      {contacts.length > 0 ? (
-        <>
-          <Filter filter={filter} handleFilterChange={handleFilterChange} />
-          <ContactsList contacts={getContactFromFilter()} />
-        </>
+    <StyledAppContainer>
+
+      {isRefreshing ? (
+        <Loader />
       ) : (
-        <p className={css.titleNotification}>
-          Your phonebook is empty. Add your first contact!
-        </p>
+        <>
+          <Suspense fallback={<Loader />}>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                {appRoutes.map(({ path, element }) => (
+                  <Route key={path} path={path} element={element} />
+                ))}
+              </Route>
+            </Routes>
+          </Suspense>
+        </>
       )}
-    </div>
+    </StyledAppContainer>
   );
 };
+
+export default App;

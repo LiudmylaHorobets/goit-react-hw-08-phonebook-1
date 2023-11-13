@@ -4,5 +4,8 @@ import { contactsReducer } from './contactSlice';
 export const store = configureStore({
   reducer: {
     contactsStore: contactsReducer,
+    auth: persistedReducer,
+  },
+
   },
 });

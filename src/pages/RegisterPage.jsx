@@ -1,7 +1,4 @@
-export const RegisterPage = () => {
-  return (
-    <div>
-      <RegisterForm />
-    </div>
-  );
+const RegisterPage = () => {
+  return <div>RegisterPage</div>;
 };
+export default RegisterPage;
